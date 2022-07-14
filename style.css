@@ -1,0 +1,11 @@
+body {
+    background-color: blanchedalmond;
+}
+
+.if_not_video {
+    display: none;
+}
+
+.showops {
+    display: block;
+}

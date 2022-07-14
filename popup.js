@@ -1,5 +1,6 @@
 const add_bookmarks = document.getElementById('add');
 const show_bookmarks = document.getElementById('show_bookmarks');
+const show_bookmarks_div = document.getElementById('show_bookmarks_div');
 const status_div = document.getElementById('status');
 const isvidplaying = document.getElementById('isvideoplaying');
 async function check_youtube_page() {
@@ -24,6 +25,7 @@ async function check_youtube_page() {
 check_youtube_page();
 function events(vid_id) {
     add_bookmarks.addEventListener("click", async () => {
+        console.log('called with add bookmarks', vid_id);
         let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
@@ -32,21 +34,42 @@ function events(vid_id) {
         });
     });
     show_bookmarks.addEventListener('click', async () => {
-        let bookmarks = (await chrome.storage.sync.get(vid_id)).bookmarks;
-        if (!bookmarks) {
-            show_bookmarks.innerText = 'no bookmarks';
+        let storage = (await chrome.storage.sync.get(vid_id));
+        console.log('showboo', JSON.stringify(storage));
+        if (!storage || !storage[vid_id].bookmarks) {
+            show_bookmarks_div.innerText = 'no bookmarks';
         } else {
-            if (bookmarks.length > 0) {
-                bookmarks.forEach(element => {
-                    show_bookmarks.innerHTML += `<p>${element.timestamp}</p>`;
-                });
-            }
+            Object.keys(storage[vid_id].bookmarks).forEach((val) => {
+                show_bookmarks_div.innerHTML += `<p>${val} : ${storage[vid_id].bookmarks[val]}</p>`;
+            });
         }
     });
 }
 
 
-function add_bookmark(vid_id) {
+async function add_bookmark(vid_id) {
+    console.log('called: ', vid_id);
     const vid_ele = document.querySelector('.html5-main-video');
-    let bookmarks = (await chrome.storage.sync.get(vid_id)).bookmarks;
+    const storage = await chrome.storage.sync.get();
+    const current_time = Math.round(vid_ele.currentTime);
+    if (!storage[vid_id] || storage[vid_id].bookmarks == undefined) {
+        console.log('came here');
+        await chrome.storage.sync.set({
+            [vid_id]: {
+                bookmarks: {
+                    [current_time]: 'disc comes here'
+                }
+            }
+        });
+        console.log(`added: ${current_time}`, JSON.stringify(await chrome.storage.sync.get(vid_id)));
+    } else {
+        console.log('came sec here');
+        storage[vid_id].bookmarks[current_time] = 'disc comes here manuplated';
+        await chrome.storage.sync.set({
+            [vid_id]: {
+                bookmarks: storage[vid_id].bookmarks
+            }
+        });
+        console.log(`added: ${current_time}`, JSON.stringify(await chrome.storage.sync.get(vid_id)));
+    }
 }

@@ -1,5 +1,6 @@
 const add_bookmarks = document.getElementById('add');
 const show_bookmarks = document.getElementById('show_bookmarks');
+const hide_bookmarks = document.getElementById('hide_bookmarks');
 const show_bookmarks_div = document.getElementById('show_bookmarks_div');
 const status_div = document.getElementById('status');
 const isvidplaying = document.getElementById('isvideoplaying');
@@ -33,21 +34,27 @@ function events(vid_id) {
             target: { tabId: tab.id },
             function: add_bookmark,
             args: [vid_id, inp_ele.value.trim()]
+        }, () => {
+            show_bookmarks.click();
         });
         inp_ele.value = '';
-        show_bookmarks.click();
     });
     show_bookmarks.addEventListener('click', async () => {
         let storage = (await chrome.storage.sync.get(vid_id));
         if (storage[vid_id] === undefined || Object.keys(storage[vid_id]).length === 0) {
             show_bookmarks_div.innerText = 'no bookmarks';
+            show_bookmarks_div.style.display = "block";
         } else {
             show_bookmarks_div.innerHTML = "";
             Object.keys(storage[vid_id].bookmarks).forEach((val) => {
                 show_bookmarks_div.innerHTML += show_bookmarks_ele(val, storage[vid_id].bookmarks[val]);
             });
             show_bookmarks_events(vid_id);
+            show_bookmarks_div.style.display = "block";
         }
+    });
+    hide_bookmarks.addEventListener('click', async () => {
+        show_bookmarks_div.style.display = "none";
     });
 }
 
@@ -90,7 +97,8 @@ async function add_bookmark(vid_id, desc_str) {
 }
 
 async function go_to_timestamp(time) {
-
+    const vid_ele = document.querySelector('.html5-main-video');
+    vid_ele.currentTime = time;
 }
 
 function show_bookmarks_ele(time, desc) {
@@ -116,11 +124,46 @@ function hide_other_bookmarks(time_val) {
             val.style.display = "none";
     });
 }
+
+function check_upd_val(val) {
+    if (val.length === 0) {
+        show_alert('empty update string!!');
+        return false;
+    } else if (val.length > 300) {
+        show_alert('string should be less than 300 characters');
+    } else {
+        return true;
+    }
+}
 function show_bookmarks_events(vid_id) {
     const delete_bookmark_elements = document.querySelectorAll('.delete_but');
     const update_bookmark_elements = document.querySelectorAll('.update_but');
     const go_bookmark_elements = document.querySelectorAll('.go_but');
     const hide_update = document.querySelectorAll('.hide_update');
+    const update_submit_but = document.querySelectorAll('.updsubbut');
+    update_submit_but.forEach((val) => {
+        val.addEventListener('click', async function (e) {
+            const time_val = this.id.slice(6);
+            const inp_ele = document.getElementById(`inp-${time_val}`);
+            const upd_val = inp_ele.value.trim();
+            if (check_upd_val(upd_val)) {
+                let storage = (await chrome.storage.sync.get(vid_id));
+                if (storage[vid_id].bookmarks[time_val] === undefined)
+                    show_alert('internal error: elemente doesnt exist in storage');
+                else {
+                    const obj = storage[vid_id].bookmarks;
+                    obj[time_val] = inp_ele.value;
+                    await chrome.storage.sync.set({
+                        [vid_id]: {
+                            bookmarks: obj
+                        }
+                    });
+                }
+            }
+            this.parentElement.style.display = "none";
+            show_bookmarks.click();
+        });
+    });
     hide_update.forEach((val) => {
         val.addEventListener('click', async function (e) {
             this.parentElement.style.display = "none";
@@ -154,7 +197,15 @@ function show_bookmarks_events(vid_id) {
     });
     go_bookmark_elements.forEach((val) => {
         val.addEventListener('click', async function (e) {
-
+            const time_val = this.id.slice(7);
+            let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                function: go_to_timestamp,
+                args: [time_val]
+            }, () => {
+                hide_bookmarks.click();
+            });
         });
     });
 }

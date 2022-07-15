@@ -3,10 +3,12 @@
     "version": "1.0",
     "manifest_version": 3,
     "action": {
-        "default_popup": "popup.html"
-    },
-    "background": {
-        "service_worker": "background.js"
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "images/youtubeicon.png",
+            "24": "images/youtubeicon.png",
+            "32": "images/youtubeicon.png"
+        }
     },
     "permissions": [
         "storage",
@@ -16,15 +18,5 @@
     "description": "Test",
     "host_permissions": [
         "https://youtube.com/*"
-    ],
-    "content_scripts": [
-        {
-            "matches": [
-                "https://youtube.com/*"
-            ],
-            "js": [
-                "content-script.js"
-            ]
-        }
     ]
 }

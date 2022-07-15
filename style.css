@@ -30,3 +30,20 @@ body {
 .desc_show_desc {
     color: blue;
 }
+
+#red-dot {
+    color: red;
+}
+
+#green-dot {
+    color: green;
+}
+
+#green-dot,
+#red-dot {
+    font-size: 1.4rem;
+}
+
+#status {
+    font-size: 1.2rem;
+}

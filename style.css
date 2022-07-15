@@ -2,10 +2,31 @@ body {
     background-color: blanchedalmond;
 }
 
-.if_not_video {
+/* main container */
+.con {
+    width: 300px;
+    text-align: center;
+}
+
+.if_not_video,
+.upd_div {
     display: none;
 }
 
 .showops {
     display: block;
+}
+
+.show_para {
+    font-size: 1.3rem;
+    font-family: monospace;
+    margin: 20px;
+}
+
+.desc_show_time {
+    color: green;
+}
+
+.desc_show_desc {
+    color: blue;
 }
